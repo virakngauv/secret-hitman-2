@@ -4,7 +4,8 @@
   "description": "A fun, competitive word game. A rebuild of the original Secret Hitman project.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "tsc"
   },
   "dependencies": {
     "express": "^4.18.2",

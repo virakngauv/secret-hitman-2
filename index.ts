@@ -13,9 +13,12 @@ io.on('connection', (socket) => {
   socket.on('chat message', (msg) => {
     io.emit('chat message', msg);
   });
+
+  console.log('new user has joined:', socket.id);
 });
 
 
 server.listen(8080, () => {
   console.log('listening on *:8080');
+  console.log('testing to see if this shows up without tsc-ing myself');
 });
