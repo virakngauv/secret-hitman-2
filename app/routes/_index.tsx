@@ -1,41 +1,142 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import { useEffect, useRef, useState } from "react";
 
-export const meta: V2_MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+import { useSocket } from "~/context";
 
 export default function Index() {
+  const socket = useSocket();
+  const [messages, setMessages] = useState<Array<any>>([]);
+  const [message, setMessage] = useState("");
+  const [playerName, setPlayerName] = useState("");
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("event", (data) => {
+      console.log(data);
+    });
+
+    socket.on("session", ({ userId, playerId }) => {
+      socket.auth = { userId };
+      window.sessionStorage.setItem("userId", userId);
+
+      socket.playerId = playerId;
+    });
+
+    socket.on("chat message", (data) => {
+      console.log("chat message data", { data });
+
+      setMessages((messages) => messages.concat([data]));
+    });
+
+    socket.on("spotItCards", (cards: [number, number]) => {
+      const [cardOneOrdinal, cardTwoOrdinal] = cards;
+      const cardOneImage = (
+        <img
+          src={`/images/cards/${cardOneOrdinal}.png`}
+          alt={`card ${cardOneOrdinal}`}
+        />
+      );
+      const cardTwoImage = (
+        <img
+          src={`/images/cards/${cardTwoOrdinal}.png`}
+          alt={`card ${cardTwoOrdinal}`}
+        />
+      );
+
+      console.log("inside spotItCards event");
+      // const newMessages = messages.concat([[cardOneImage, cardTwoImage]]);
+      // console.log("newMessages", newMessages);
+      // setMessages(newMessages);
+      setMessages((messages) =>
+        messages.concat([[cardOneImage, cardTwoImage]])
+      );
+    });
+  }, [socket]);
+
+  // const messageInputRef = useRef(null);
+  useEffect(() => {
+    // window.scrollTo(0, document.body.scrollHeight);
+    console.log("messages changed!");
+
+    // messageInputRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    console.log("open dialog maybe?");
+    const dialogElement = document.getElementById(
+      "selectPlayerNameDialog"
+    ) as HTMLDialogElement | null;
+    if (dialogElement && !dialogElement.open) {
+      dialogElement.showModal();
+    }
+  }, []);
+
+  function handleSubmitMessage() {
+    console.log("in handlesubmitmessage");
+    if (!socket) return;
+
+    if (!playerName) {
+      console.error("no player name bruh");
+    }
+    socket.emit("new chat message", { playerName, message });
+    setMessage("");
+  }
+
+  function handleSubmitPlayer() {
+    // console.log(!!socket);
+    if (!socket) return;
+
+    socket.emit("new_player", playerName);
+    const dialogElement = document.getElementById(
+      "selectPlayerNameDialog"
+    ) as HTMLDialogElement | null;
+    if (dialogElement) {
+      dialogElement.close();
+    }
+  }
+
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
+    <div>
+      <dialog id="selectPlayerNameDialog">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <input
+            value={playerName}
+            onChange={(e) => {
+              setPlayerName(e.target.value);
+            }}
+          />
+          <input
+            type="submit"
+            value="Submit Name"
+            onClick={handleSubmitPlayer}
+          />
+        </form>
+      </dialog>
       <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
+        <li>"start": starts game</li>
+
+        {messages.map((message) => {
+          return <li key={message}>{message}</li>;
+        })}
       </ul>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <input
+          // ref={messageInputRef}
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+          }}
+        />
+        <input type="submit" value="Submit" onClick={handleSubmitMessage} />
+      </form>
     </div>
   );
 }

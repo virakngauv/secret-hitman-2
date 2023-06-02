@@ -1,5 +1,4 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -8,22 +7,52 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import { useEffect, useState } from "react";
+import type { Socket } from "socket.io-client";
+import io from "socket.io-client";
 
-export const links: LinksFunction = () => [
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
-];
+import { SocketProvider } from "~/context";
+
+export const meta: MetaFunction = () => ({
+  charset: "utf-8",
+  title: "New Remix App",
+  viewport: "width=device-width,initial-scale=1",
+});
 
 export default function App() {
+  const [socket, setSocket] = useState<Socket>();
+
+  useEffect(() => {
+    const userId = window.sessionStorage.getItem("userId");
+
+    const socket = io();
+    setSocket(socket);
+
+    if (userId) {
+      socket.auth = { userId };
+    }
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("confirmation", (data) => {
+      console.log(data);
+    });
+  }, [socket]);
+
   return (
     <html lang="en">
       <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
       </head>
       <body>
-        <Outlet />
+        <SocketProvider socket={socket}>
+          <Outlet />
+        </SocketProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
