@@ -44,12 +44,14 @@ export default function Index() {
         <img
           src={`/images/cards/${cardOneOrdinal}.png`}
           alt={`card ${cardOneOrdinal}`}
+          style={{ maxWidth: "60%" }}
         />
       );
       const cardTwoImage = (
         <img
           src={`/images/cards/${cardTwoOrdinal}.png`}
           alt={`card ${cardTwoOrdinal}`}
+          style={{ maxWidth: "60%" }}
         />
       );
 
