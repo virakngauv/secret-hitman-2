@@ -242,9 +242,14 @@ function drawTwoNewCards() {
   io.emit("spotItCards", [cardOne, cardTwo]);
 }
 
-function messageProcessor(userId, message) {
+function messageProcessor(userId, originalMessage) {
   console.log("in message processor");
-  console.log("userId", userId, "message", message);
+  console.log("userId", userId, "originalMessage", originalMessage);
+
+  const message =
+    typeof originalMessage === "string"
+      ? originalMessage.toLowerCase()
+      : originalMessage;
 
   if (message === "start") {
     round = 1;

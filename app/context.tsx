@@ -2,6 +2,10 @@ import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
 import type { Socket } from "socket.io-client";
 
+// interface GameSocket extends Socket {
+//   playerId: string;
+// }
+
 type ProviderProps = {
   socket: Socket | undefined;
   children: ReactNode;
