@@ -4,9 +4,12 @@ import { useSocket } from "~/context";
 
 export default function Index() {
   const socket = useSocket();
-  const [messages, setMessages] = useState<Array<any>>([]);
-  const [message, setMessage] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [cards, setCards] = useState<Array<any>>([]);
+  const [messages, setMessages] = useState<Array<any>>([
+    'Type "start" to start or re-start a game',
+  ]);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!socket) return;
@@ -25,7 +28,14 @@ export default function Index() {
     socket.on("chat message", (data) => {
       console.log("chat message data", { data });
 
-      setMessages((messages) => messages.concat([data]));
+      setMessages((messages) => {
+        const newMessages = messages.concat([data]);
+        if (newMessages.length > 5) {
+          newMessages.shift();
+        }
+
+        return newMessages;
+      });
     });
 
     socket.on("spotItCards", (cards: [number, number]) => {
@@ -47,9 +57,7 @@ export default function Index() {
       // const newMessages = messages.concat([[cardOneImage, cardTwoImage]]);
       // console.log("newMessages", newMessages);
       // setMessages(newMessages);
-      setMessages((messages) =>
-        messages.concat([[cardOneImage, cardTwoImage]])
-      );
+      setCards([cardOneImage, cardTwoImage]);
     });
   }, [socket]);
 
@@ -116,13 +124,12 @@ export default function Index() {
           />
         </form>
       </dialog>
-      <ul>
-        <li>"start": starts game</li>
-
+      <div>{cards}</div>
+      <div>
         {messages.map((message) => {
-          return <li key={message}>{message}</li>;
+          return <div key={message}>{message}</div>;
         })}
-      </ul>
+      </div>
       <form
         onSubmit={(e) => {
           e.preventDefault();
