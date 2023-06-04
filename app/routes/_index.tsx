@@ -6,6 +6,7 @@ export default function Index() {
   const socket = useSocket();
   const [playerName, setPlayerName] = useState("");
   const [cards, setCards] = useState<Array<any>>([]);
+  const [botMessage, setBotMessage] = useState("");
   const [messages, setMessages] = useState<Array<any>>([
     'Type "start" to start or re-start a game',
   ]);
@@ -30,10 +31,10 @@ export default function Index() {
 
       setMessages((messages) => {
         const newMessages = messages.concat([data]);
-        if (newMessages.length > 5) {
+        if (newMessages.length > 3) {
           newMessages.shift();
         }
-
+        console.log(JSON.stringify(newMessages, null, 2));
         return newMessages;
       });
     });
@@ -61,12 +62,17 @@ export default function Index() {
       // setMessages(newMessages);
       setCards([cardOneImage, cardTwoImage]);
     });
+
+    socket.on("bot message", (botMessage) => {
+      setBotMessage(botMessage);
+    });
   }, [socket]);
 
-  // const messageInputRef = useRef(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     // window.scrollTo(0, document.body.scrollHeight);
     console.log("messages changed!");
+    console.log("messages", JSON.stringify(messages, null, 2));
 
     // messageInputRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -90,6 +96,7 @@ export default function Index() {
     }
     socket.emit("new chat message", { playerName, message });
     setMessage("");
+    messageInputRef.current?.focus();
   }
 
   function handleSubmitPlayer() {
@@ -102,6 +109,7 @@ export default function Index() {
     ) as HTMLDialogElement | null;
     if (dialogElement) {
       dialogElement.close();
+      messageInputRef.current?.focus();
     }
   }
 
@@ -127,6 +135,7 @@ export default function Index() {
         </form>
       </dialog>
       <div>{cards}</div>
+      <div>{botMessage}</div>
       <div>
         {messages.map((message) => {
           return <div key={message}>{message}</div>;
@@ -138,7 +147,7 @@ export default function Index() {
         }}
       >
         <input
-          // ref={messageInputRef}
+          ref={messageInputRef}
           value={message}
           onChange={(e) => {
             setMessage(e.target.value);

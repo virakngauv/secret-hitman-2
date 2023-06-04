@@ -257,13 +257,6 @@ function messageProcessor(userId, originalMessage) {
     scores = {};
 
     drawTwoNewCards();
-    // cardOne = Math.floor(Math.random() * deckSize);
-    // cardTwo = Math.floor(Math.random() * deckSize);
-    // while (cardOne === cardTwo) {
-    //   cardTwo = Math.floor(Math.random() * deckSize);
-    // }
-    // io.emit("spotItCards", [cardOne, cardTwo]);
-
     return;
   }
 
@@ -274,12 +267,10 @@ function messageProcessor(userId, originalMessage) {
     console.log("new score:", scores[userId]);
 
     const playerName = users[userId].playerName;
-    console.log("before emit");
     io.emit(
-      "chat message",
-      `[Spot It Bot] ${playerName} got it! Their score is now ${scores[userId]} `
+      "bot message",
+      `[Spot It Bot] ${playerName} found the ${message}! Their score is now ${scores[userId]} `
     );
-    console.log("after emit");
 
     // next card
     drawTwoNewCards();
